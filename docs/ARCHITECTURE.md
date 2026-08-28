@@ -14,20 +14,9 @@ fusion, conformal interval widths, copilot bundles, and the submission's
 
 ## End-to-end flow
 
-```mermaid
-flowchart TD
-    A["8-file data pack<br/>(schema-locked, SHA-256 manifest)"] --> B["Trust layer — Task 1<br/>rule engine + learned rules<br/>servicer reconciliation → trust score"]
-    B --> C["Leakage-safe feature pipeline<br/>backward-only history, refi incentive,<br/>trust features"]
-    C --> D["4 champion models — Task 2<br/>per-target selection, isotonic calibration"]
-    C --> E["Multinomial hazard engine — Task 3<br/>discrete-time next-state model"]
-    D --> F["Anomaly fusion — Task 4<br/>rules + isolation forest + supervised"]
-    E --> G["Curves & scenarios — Tasks 3+5<br/>hazard chaining, shock multipliers, Monte Carlo"]
-    D --> H["Explainability — Task 6<br/>SHAP global/local, FP/FN analysis,<br/>trust-scaled conformal intervals"]
-    F --> I["Governed copilot — Task 7<br/>artifact-only bundles, mini-RAG,<br/>grounding checker, two-stream logs"]
-    G --> I
-    H --> I
-    I --> J["submission.csv + reports + audit logs<br/>one command, ~5 min, reproducible"]
-```
+
+<img width="1146" height="1296" alt="image" src="https://github.com/user-attachments/assets/4cc03079-ac7e-4704-8a19-486ccf61fe7e" />
+
 
 ## Decision log — what we chose, what we rejected, and why
 
