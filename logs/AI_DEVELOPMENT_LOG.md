@@ -1,10 +1,10 @@
 
 # AI Development Log — Loan Performance Intelligence Engine
-Required deliverable (Task 8). Updated daily. Human = Harsh Sahu; AI assistant = Claude (Anthropic).
+Required deliverable (Task 8). Updated daily. Human = Harsh Sahu; AI assistant = Gemini 3.1 Pro and Claude Sonnet 5(Anthropic).
 
 ## Tools used
-- Claude (claude.ai) — architecture design, code generation, critical review of plan vs rubric
-- [add: IDE assistant / Claude Code / Copilot if used]
+- Claude (claude.ai) — architecture design, code generation, critical review of plan vs rubric free tier
+- Antigravity IDE and CLI and Open AI Codex 
 
 ## Approx AI-generated code share
 - Day 1 (Aug 27): ~85% AI-generated, 100% human-reviewed and executed/verified against sanity checks
