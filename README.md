@@ -15,7 +15,7 @@ LLM copilot.
 
 ```mermaid
 flowchart TD
-    A["8-file data pack<br/>(schema-locked, SHA-256 manifest)"] --> B["Trust layer — Task 1<br/>rule engine + learned rules<br/>servicer reconciliation → trust score"]
+    A["file data pack or Input Files <br/>(schema-locked, SHA-256 manifest)"] --> B["Trust layer — Task 1<br/>rule engine + learned rules<br/>servicer reconciliation → trust score"]
     B --> C["Leakage-safe feature pipeline<br/>backward-only history, refi incentive,<br/>trust features"]
     C --> D["4 champion models — Task 2<br/>per-target selection, isotonic calibration"]
     C --> E["Multinomial hazard engine — Task 3<br/>discrete-time next-state model"]
