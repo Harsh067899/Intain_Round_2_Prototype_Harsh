@@ -79,30 +79,8 @@ sequenceDiagram
 ```
 
 **PlantUML:**
-```plantuml
-@startuml record_journey
-autonumber
-skinparam shadowing false
-participant "Servicing systems\n(2 sources)" as S
-participant "Trust layer\n(Task 1)" as T
-participant "Prediction engine\n(Tasks 2-3)" as M
-participant "Anomaly fusion\n(Task 4)" as A
-participant "Copilot\n(Task 7)" as C
-actor "Human reviewer" as R
+<img width="1869" height="589" alt="image" src="https://github.com/user-attachments/assets/e2a82609-3cec-458d-880d-ff8d038fb1e6" />
 
-S -> T : Monthly record + servicer update
-T -> T : Rules R001-R008, source reconciliation
-T -> M : Record + trust score (0.17)
-M -> M : Calibrated probabilities + hazard next-state
-M -> A : Predictions + trust features
-A -> A : Rules + isolation forest + supervised fusion
-A -> C : Artifact bundle (score 0.82, rules, drivers)
-C -> C : Mini-RAG retrieval + grounded draft
-C -> C : Grounding checker (auto-reject invented claims)
-C -> R : "RECOMMENDATION — human decision required"
-R -> R : ESCALATE (logged to audit trail)
-@enduml
-```
 
 ---
 
@@ -137,23 +115,10 @@ stateDiagram-v2
 ```
 
 **PlantUML:**
-```plantuml
-@startuml loan_state_machine
-skinparam shadowing false
-[*] --> CURRENT : origination
-CURRENT --> DPD30 : misses payment
-DPD30 --> DPD60 : deteriorates
-DPD60 --> DPD90 : deteriorates
-DPD30 --> CURRENT : cures
-DPD60 --> CURRENT : cures
-DPD90 --> DPD60 : partial cure
-DPD90 --> DEFAULT : charge-off
-CURRENT --> PREPAID : refinances / pays off
-DEFAULT --> [*]
-PREPAID --> [*]
-note right of DEFAULT : absorbing state -\ncompeting risk vs PREPAID
-@enduml
-```
+
+<img width="1987" height="584" alt="image" src="https://github.com/user-attachments/assets/b730f175-5c7a-41a7-94da-8c78a25c145b" />
+
+
 
 **Three analyst-level proof points** (full evidence in `reports/`):
 - Validation is **out-of-time AND out-of-loan** (no loan appears in both sets —
@@ -247,83 +212,9 @@ classDiagram
 ```
 
 **PlantUML:**
-```plantuml
-@startuml engine_class_diagram
-skinparam shadowing false
-skinparam classAttributeIconSize 0
 
-class DataPack {
-  +train/test panels
-  +static, servicer_updates
-  +rules.json, scenarios.csv
-  +sha256_manifest
-}
-class TrustLayer {
-  +run_rules(df)
-  +learned_relationship_checks(df)
-  +reconcile(panel, updates)
-  +trust_scores() : [0,1]
-}
-class FeatureBuilder <<backward-looking only>> {
-  +build_features(panel, trust)
-  +censor_mask(df, target, end)
-}
-class ChampionModel {
-  +model : LGBM | Logistic
-  +iso : IsotonicRegression
-  +champion : str
-  +predict_proba(X)
-}
-class HazardEngine {
-  +next_state LGBM (unweighted)
-  +step_probs(state, t)
-  +chain_curves(cohort, H)
-}
-class ScenarioSimulator {
-  +apply_scenario(probs, mults)
-  +monte_carlo(paths)
-}
-class AnomalyFusion {
-  +weights (rule, iso, sup)
-  +isolation_forest
-  +exception models
-  +score(X) : reason_codes
-}
-class Explainer {
-  +shap_global_local()
-  +fpfn_analysis()
-  +conformal(trust) : halfwidth
-}
-class CopilotClient {
-  +note_for(bundle)
-  +review(rec, decision)
-  -call_api() / template()
-}
-class GroundingChecker {
-  +check(note, bundle)
-  +reject_ungrounded()
-}
-class SubmissionBuilder {
-  +build_submission() : csv
-  +action_policy()
-}
+<img width="730" height="1111" alt="image" src="https://github.com/user-attachments/assets/93c8d6ad-7e29-4eb9-a6fb-709f959c1c43" />
 
-DataPack --> TrustLayer
-TrustLayer --> FeatureBuilder : trust scores
-FeatureBuilder --> ChampionModel
-FeatureBuilder --> HazardEngine
-HazardEngine --> ScenarioSimulator
-TrustLayer --> AnomalyFusion : rule signals
-ChampionModel --> Explainer
-TrustLayer --> Explainer : trust -> widths
-Explainer --> CopilotClient : artifact bundles
-AnomalyFusion --> CopilotClient
-CopilotClient *-- GroundingChecker
-ChampionModel --> SubmissionBuilder
-AnomalyFusion --> SubmissionBuilder
-Explainer --> SubmissionBuilder : confidence
-@enduml
-```
 
 ---
 
