@@ -6,7 +6,7 @@ performance with time-aware validation, models state transitions, detects anomal
 runs macro scenarios, and explains everything to a human reviewer through a governed
 LLM copilot.
 
-## 📚 Core Documentation (Start Here)
+##  Core Documentation (Start Here)
 - **[Solution Story & Engineering Decisions](SOLUTION_STORY.md)** — The narrative of how we solved the problem.
 - **[System Architecture](docs/ARCHITECTURE.md)** — End-to-end mermaid flow diagram and component overview.
 - **[AI Development Log](logs/AI_DEVELOPMENT_LOG.md)** — Human-in-the-loop tracking, AI guardrails, and lessons learned.
