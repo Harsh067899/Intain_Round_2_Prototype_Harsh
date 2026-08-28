@@ -97,22 +97,6 @@ month over month — the way real stress works.
 
 ### The loan state machine
 
-**Mermaid:**
-```mermaid
-stateDiagram-v2
-    [*] --> CURRENT : origination
-    CURRENT --> DPD30 : misses payment
-    DPD30 --> DPD60 : deteriorates
-    DPD60 --> DPD90 : deteriorates
-    DPD30 --> CURRENT : cures
-    DPD60 --> CURRENT : cures
-    DPD90 --> DPD60 : partial cure
-    DPD90 --> DEFAULT : charge-off
-    CURRENT --> PREPAID : refinances / pays off
-    DEFAULT --> [*]
-    PREPAID --> [*]
-    note right of DEFAULT : absorbing —\ncompeting risk vs PREPAID
-```
 
 **PlantUML:**
 
