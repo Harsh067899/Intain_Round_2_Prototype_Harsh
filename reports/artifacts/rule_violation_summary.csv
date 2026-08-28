@@ -1,0 +1,9 @@
+rule_id,name,severity,violations,violation_pct
+R001,balance_non_negative,high,572,0.251
+R002,balance_le_original,medium,1351,0.594
+R003,date_order_valid,high,589,0.259
+R004,status_dpd_consistent,high,1761,0.774
+R005,closed_loan_balance,medium,3,0.001
+R006,stale_record,low,2573,1.131
+R007,document_gap,low,14681,6.455
+R008,duplicate_loan_month,high,1458,0.641

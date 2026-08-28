@@ -1,0 +1,9 @@
+feature,std_coefficient
+status_ord,-0.381
+interest_rate,0.1347
+rate_spread_vs_month,-0.0496
+loan_age_months,-0.0444
+trust_score,-0.0336
+n_delinq_last_12m,-0.0214
+days_past_due,-0.0211
+balance_ratio,0.0096

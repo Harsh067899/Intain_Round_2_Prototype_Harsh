@@ -1,0 +1,11 @@
+{
+  "MANIFEST.sha256.json": "c5836f93d3d8e0ae027242d855645c9d5598af2dbff658fdfce4f63c5f3c2b60",
+  "data_dictionary.md": "9d6509f55d1264491aef34639c36b54f848af016e3402f6e43660c934246ca87",
+  "loan_monthly_performance_test.csv": "e39528c738c4dcccf7c0537175a1d78ede5309ad9df40fc65e3b56ea613168fe",
+  "loan_monthly_performance_train.csv": "237013286eba8b7cddf3909afe5e07f51e279a377fb2cc9634f9318104f8172d",
+  "loan_static_attributes.csv": "ef13edd8282566a456bb833a7ab85b971b21e97965bd42e88802719ba68649b9",
+  "macro_scenarios.csv": "df2ae9cf9b2335a73043c07cb1558382d3b51cbad0f9b83b5697ad6c8c3b1622",
+  "servicer_updates.csv": "b95481c0da4bc1685e2550a4f76bac4a8e0e54aa110011e8661e587533be7d52",
+  "submission_template.csv": "a19a27396c102b1581b92f834dd561365e865f94e721d38eab2247ab8877e4d3",
+  "validation_rules.json": "9232c3ff24c7f8ff09b007c27629e913cb93cb4de471942994b759824ff20547"
+}

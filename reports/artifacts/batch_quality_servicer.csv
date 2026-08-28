@@ -1,0 +1,6 @@
+servicer_name,mean_trust,pct_low_trust,pct_any_rule,pct_source_conflict
+AlphaServ,0.966,1.683,8.226,5.456
+BetaLoan,0.963,1.729,8.892,5.575
+CasaMortgage,0.942,2.451,15.107,5.611
+DeltaHome,0.961,1.74,9.805,5.386
+EagleTrust,0.959,1.778,9.973,5.453

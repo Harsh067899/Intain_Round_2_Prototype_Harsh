@@ -1,0 +1,4 @@
+scenario,delinquency_hazard_multiplier,default_hazard_multiplier,prepayment_multiplier,rate_shift_bps,unemployment_shift_pct,hpi_shift_pct,description
+base,1.0,1.0,1.0,0,0.0,0.0,Base scenario.
+adverse_credit,1.6,1.8,0.7,150,2.5,-8.0,Adverse credit.
+high_prepayment,0.9,0.85,2.2,-175,-0.5,4.0,High prepayment.

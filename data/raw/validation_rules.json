@@ -1,0 +1,82 @@
+{
+  "rules": [
+    {
+      "id": "R001",
+      "name": "balance_non_negative",
+      "severity": "high",
+      "fields": [
+        "current_balance"
+      ],
+      "logic": "current_balance >= 0"
+    },
+    {
+      "id": "R002",
+      "name": "balance_le_original",
+      "severity": "medium",
+      "fields": [
+        "current_balance",
+        "original_balance"
+      ],
+      "logic": "current_balance <= original_balance * 1.01 (amortizing, small accrual tolerance)"
+    },
+    {
+      "id": "R003",
+      "name": "date_order_valid",
+      "severity": "high",
+      "fields": [
+        "origination_month",
+        "reporting_month"
+      ],
+      "logic": "origination_month <= reporting_month and loan_age_months >= 0"
+    },
+    {
+      "id": "R004",
+      "name": "status_dpd_consistent",
+      "severity": "high",
+      "fields": [
+        "current_status",
+        "days_past_due"
+      ],
+      "logic": "CURRENT => dpd==0; DPD30 => 30<=dpd<60; DPD60 => 60<=dpd<90; DPD90 => dpd>=90"
+    },
+    {
+      "id": "R005",
+      "name": "closed_loan_balance",
+      "severity": "medium",
+      "fields": [
+        "current_status",
+        "current_balance"
+      ],
+      "logic": "PREPAID => current_balance == 0"
+    },
+    {
+      "id": "R006",
+      "name": "stale_record",
+      "severity": "low",
+      "fields": [
+        "last_updated_at",
+        "reporting_month"
+      ],
+      "logic": "last_updated_at within 3 months of reporting_month"
+    },
+    {
+      "id": "R007",
+      "name": "document_gap",
+      "severity": "low",
+      "fields": [
+        "document_status"
+      ],
+      "logic": "document_status in (MISSING_NOTE, PENDING_REVIEW) requires exception review"
+    },
+    {
+      "id": "R008",
+      "name": "duplicate_loan_month",
+      "severity": "high",
+      "fields": [
+        "loan_id",
+        "reporting_month"
+      ],
+      "logic": "(loan_id, reporting_month) must be unique"
+    }
+  ]
+}

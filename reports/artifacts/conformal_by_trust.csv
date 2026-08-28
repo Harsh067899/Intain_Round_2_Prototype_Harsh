@@ -1,0 +1,7 @@
+trust_band,method,n_cal,n_eval,mean_halfwidth,empirical_coverage
+LOW,per-band residual q90,114,132,0.0949,0.9242
+MEDIUM,per-band residual q90,447,433,0.0949,0.9215
+HIGH,per-band residual q90,5872,6269,0.0949,0.9067
+LOW,SHIPPED: trust-scaled normalized,6433,132,0.1259,0.9242
+MEDIUM,SHIPPED: trust-scaled normalized,6433,433,0.1137,0.9215
+HIGH,SHIPPED: trust-scaled normalized,6433,6269,0.0954,0.9067
