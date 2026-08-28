@@ -26,7 +26,7 @@ flowchart TD
     G --> I
     H --> I
     I --> J["submission.csv + reports + audit logs<br/>one command, ~5 min, reproducible"]
-
+```
 ## Quickstart
 ```bash
 pip install -r requirements.txt
