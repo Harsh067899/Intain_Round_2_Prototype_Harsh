@@ -1,3 +1,4 @@
+
 # AI Development Log — Loan Performance Intelligence Engine
 Required deliverable (Task 8). Updated daily. Human = Harsh Sahu; AI assistant = Claude (Anthropic).
 
@@ -7,6 +8,8 @@ Required deliverable (Task 8). Updated daily. Human = Harsh Sahu; AI assistant =
 
 ## Approx AI-generated code share
 - Day 1 (Aug 27): ~85% AI-generated, 100% human-reviewed and executed/verified against sanity checks
+
+*Note from Harsh: This log is my personal auditing trail. While I relied on Claude to accelerate boilerplate code and architecture prototyping, I maintained strict human-in-the-loop governance. Every design decision, evaluation metric, and AI-generated script was manually executed, scrutinized, and corrected by me before shipping.*
 
 ## Entry — Aug 27, 2026
 **Goal:** Unblock the build while the organizer data pack is pending.
