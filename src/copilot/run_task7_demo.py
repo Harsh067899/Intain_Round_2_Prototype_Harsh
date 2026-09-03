@@ -108,13 +108,41 @@ def build_submission() -> pd.DataFrame:
     out["top_drivers"] = [f"{d}{(' | rules: ' + r) if r else ''}"
                           for d, r in zip(drivers, rules_txt)]
 
-    # action policy + trust-scaled confidence (conformal governance, Task 6)
+    # ── Cost-Weighted / Expected Dollar Loss Action Policy (Phase 3) ──────────
+    # EDL = P(default_12m) × current_balance × LGD_assumption
+    # Connects model probabilities directly to financial ROI for triage routing.
+    LGD = float(os.environ.get("LGD_ASSUMPTION", 0.40))  # 40% for residential mortgages
+    EDL_HIGH_THRESHOLD = float(os.environ.get("EDL_HIGH_THRESHOLD", 50_000))  # $50K
+    EDL_MED_THRESHOLD = float(os.environ.get("EDL_MED_THRESHOLD", 10_000))    # $10K
+
+    current_bal = ts["current_balance"].to_numpy() if "current_balance" in ts.columns else np.ones(len(out)) * 200_000
+    edl = out["prob_default_12m"].to_numpy() * current_bal * LGD
+    out["expected_dollar_loss"] = np.round(edl, 2)
+
+    # Trust-scaled confidence (conformal governance, Task 6)
     conf = joblib.load(os.path.join(MODELS, "conformal_trust.joblib"))
     half = conf["q_glob"] * (1 + conf["lam"] * (1 - Xs["trust_score"].to_numpy()))
     out["confidence"] = np.round(np.clip(1 - half, 0, 1), 4)
+
+    # Hybrid action policy: EDL-driven triage cross-checked with anomaly + trust
+    is_escalate = (
+        (edl > EDL_HIGH_THRESHOLD) |               # High expected dollar loss
+        (out["anomaly_score"] > 0.7) |              # High anomaly signal
+        ((edl > EDL_MED_THRESHOLD) & (out["anomaly_score"] > 0.4))  # Medium EDL + medium anomaly
+    )
+    is_review = (
+        (edl > EDL_MED_THRESHOLD) |                 # Medium expected dollar loss
+        (out["anomaly_score"] > 0.4) |              # Medium anomaly signal
+        (Xs["trust_score"] < 0.5).to_numpy()        # Low trust data
+    )
     out["recommended_action"] = np.select(
-        [out["anomaly_score"] > 0.7, (out["anomaly_score"] > 0.4) | (Xs["trust_score"] < 0.5).to_numpy()],
+        [is_escalate, is_review],
         ["ESCALATE", "REVIEW"], default="AUTO_ACCEPT")
+
+    print(f"[EDL policy] LGD={LGD:.0%}, thresholds: ESCALATE>${EDL_HIGH_THRESHOLD:,.0f}, "
+          f"REVIEW>${EDL_MED_THRESHOLD:,.0f}")
+    print(f"[EDL stats] median=${np.median(edl):,.0f}, p90=${np.percentile(edl, 90):,.0f}, "
+          f"p99=${np.percentile(edl, 99):,.0f}, max=${np.max(edl):,.0f}")
 
     out = out[template.columns.tolist()]
     assert list(out.columns) == list(template.columns), "submission columns mismatch vs template"
@@ -125,12 +153,13 @@ def build_submission() -> pd.DataFrame:
     return out
 
 
-def demo_notes(n: int, use_api: bool):
-    print(f"[copilot] generating {n} grounded reviewer notes (mode={'API' if use_api else 'template'})...")
+def demo_notes(n: int, use_api: bool, backend: str | None = None):
+    effective_backend = backend or ("api" if use_api else "template")
+    print(f"[copilot] generating {n} grounded reviewer notes (mode={effective_backend})...")
     scores = pd.read_csv(os.path.join(ART, "anomaly_scores_train.csv"))
     local = pd.read_csv(os.path.join(ART, "local_explanations.csv"))
     panel = load_panel("train")
-    cl = CopilotClient(use_api)
+    cl = CopilotClient(use_api=use_api, backend=backend)
 
     top = scores.sort_values("anomaly_score", ascending=False).drop_duplicates("loan_id").head(n)
     ctx = panel.set_index(["loan_id", "reporting_month"])
@@ -171,10 +200,20 @@ def demo_notes(n: int, use_api: bool):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--api", action="store_true", help="use Anthropic API (needs ANTHROPIC_API_KEY)")
+    ap.add_argument("--api", action="store_true", help="use cloud API (Groq/OpenAI/Anthropic)")
+    ap.add_argument("--ollama", action="store_true", help="use local Ollama instance")
+    ap.add_argument("--backend", choices=["template", "api", "ollama"], default=None,
+                    help="explicitly choose copilot backend")
     ap.add_argument("--n", type=int, default=8)
     ap.add_argument("--submission-only", action="store_true")
     args = ap.parse_args()
+
+    backend = args.backend
+    if args.ollama:
+        backend = "ollama"
+    elif args.api and not backend:
+        backend = "api"
+
     if not args.submission_only:
-        demo_notes(args.n, args.api)
+        demo_notes(args.n, args.api, backend=backend)
     build_submission()

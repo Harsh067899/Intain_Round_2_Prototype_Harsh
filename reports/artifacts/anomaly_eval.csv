@@ -1,6 +1,6 @@
 ,value
-exception_required AUC (val),0.9947
-exception_required PR-AUC (val),0.9845
-anomaly_score AUC vs labels (val),0.9946
-exception_type accuracy | exception (val),0.9034
-anomaly recall @ precision 0.90 (val),0.9557
+exception_required AUC (val),0.5079
+exception_required PR-AUC (val),0.0878
+anomaly_score AUC vs labels (val),0.5029
+exception_type accuracy | exception (val),0.0
+anomaly recall @ precision 0.90 (val),0.0

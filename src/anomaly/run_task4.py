@@ -120,17 +120,23 @@ def main():
     joblib.dump({"iso": iso, "iso_cols": iso_cols, "weights": (W_RULE, W_ISO, W_SUP)},
                 os.path.join(MODELS, "anomaly_fusion.joblib"))
 
-    # ---- 20+ reviewer-ready examples ---------------------------------------------
+    # ---- 20+ reviewer-ready examples with Expected Dollar Loss (Phase 3) ---------
     top = (scores.loc[is_va.values].sort_values("anomaly_score", ascending=False)
                  .drop_duplicates("loan_id").head(24))
     ctx = panel.set_index(["loan_id", "reporting_month"])
+    LGD = float(os.environ.get("LGD_ASSUMPTION", 0.40))
     lines = ["# Reviewer-Ready Anomaly Examples (Task 4)",
              "_Top-scored validation records. Every claim below is grounded in computed artifacts: "
              "fired rules, source conflicts, isolation percentile, and the supervised exception model._",
+             "",
+             f"_Financial ROI Action Policy: Loss-Given-Default = {LGD:.0%}. "
+             "Expected Dollar Loss (EDL) = P(exception/default) × Current Balance × LGD._",
              ""]
     for i, r in enumerate(top.itertuples(index=False), 1):
         row = ctx.loc[(r.loan_id, r.reporting_month)]
         row = row.iloc[0] if isinstance(row, pd.DataFrame) else row
+        curr_bal = float(row.current_balance) if "current_balance" in row else 0.0
+        edl = r.exception_required_prob * curr_bal * LGD
         reasons = []
         if isinstance(r.rules_fired, str) and r.rules_fired:
             reasons.append(f"rules fired: {r.rules_fired}")
@@ -139,16 +145,18 @@ def main():
         if r.iso_percentile > 0.95:
             reasons.append(f"statistical outlier (isolation pct {r.iso_percentile:.2f})")
         reasons.append(f"model exception prob {r.exception_required_prob:.2f}")
+        reasons.append(f"EDL ${edl:,.0f}")
+        rec_action = "ESCALATE" if (r.anomaly_score > 0.7 or edl > 50000) else "REVIEW"
         lines += [
             f"## Example {i} — {r.loan_id} @ {r.reporting_month}",
             f"- **anomaly_score:** {r.anomaly_score:.3f} | **trust:** {r.trust_score:.2f} "
-            f"| **predicted type:** {r.exception_type_pred}",
+            f"| **predicted type:** {r.exception_type_pred} | **expected_dollar_loss:** ${edl:,.0f}",
             f"- **snapshot:** status={row.current_status}, dpd={row.days_past_due}, "
             f"balance={row.current_balance:,.0f} (orig {row.original_balance:,.0f}), "
             f"servicer={row.servicer_name}, doc={row.document_status}",
             f"- **why flagged:** {'; '.join(reasons)}",
-            f"- **recommended action:** {'ESCALATE' if r.anomaly_score>0.7 else 'REVIEW'} — "
-            f"{'multiple independent signals agree' if len(reasons)>2 else 'single-source signal, verify with servicer'}",
+            f"- **recommended action:** {rec_action} — "
+            f"{'high dollar loss exposure or multi-signal agreement' if len(reasons)>2 else 'single-source signal, verify with servicer'}",
             "",
         ]
     with open(os.path.join(ROOT, "reports", "anomaly_examples.md"), "w", encoding="utf-8") as f:

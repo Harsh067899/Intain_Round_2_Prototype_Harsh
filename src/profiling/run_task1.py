@@ -38,6 +38,24 @@ def main():
     static = pd.read_csv(os.path.join(RAW, "loan_static_attributes.csv"))
     updates = pd.read_csv(os.path.join(RAW, "servicer_updates.csv"))
 
+    # --- 0. Pandera schema validation (Phase 2) --------------------------------
+    try:
+        from schemas import validate_train, validate_test, validate_static, validate_updates
+        train, train_errs = validate_train(train)
+        test, test_errs = validate_test(test)
+        static, static_errs = validate_static(static)
+        updates, update_errs = validate_updates(updates)
+        errs = {k: v for k, v in [("train", train_errs), ("test", test_errs),
+                                    ("static", static_errs), ("updates", update_errs)] if v}
+        if errs:
+            print(f"[Pandera] Schema validation flagged anomalies for: {', '.join(errs.keys())}")
+            for k, e in errs.items():
+                print(f"   {k}: {len(e.failure_cases)} check failures detected")
+        else:
+            print("[Pandera] Schema validation passed for all data files")
+    except ImportError:
+        print("[Pandera] Not installed - skipping schema validation")
+
     # --- 1. column profiles -------------------------------------------------
     prof_tr = profile_columns(train)
     prof_te = profile_columns(test)

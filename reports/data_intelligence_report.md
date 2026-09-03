@@ -40,10 +40,10 @@ PSI bands: <0.10 stable · 0.10–0.25 moderate · >0.25 significant.
 | dti_band              | 0.0007 | stable       |
 | ltv_band              | 0.0005 | stable       |
 | state                 | 0.0004 | stable       |
-| credit_score_band     | 0.0002 | stable       |
 | loan_purpose          | 0.0002 | stable       |
-| servicer_name         | 0.0001 | stable       |
+| credit_score_band     | 0.0002 | stable       |
 | document_status       | 0.0001 | stable       |
+| servicer_name         | 0.0001 | stable       |
 | source_system         | 0.0001 | stable       |
 | days_past_due         | 0      | stable       |
 
