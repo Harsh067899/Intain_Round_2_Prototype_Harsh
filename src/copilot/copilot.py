@@ -118,6 +118,10 @@ def _is_num(s):
         return False
 
 
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1:8b")
+
+
 # ---------------------------- copilot client ---------------------------------
 
 SYSTEM = (
@@ -130,8 +134,18 @@ SYSTEM = (
 
 
 class CopilotClient:
-    def __init__(self, use_api: bool):
+    def __init__(self, use_api: bool = False, backend: str | None = None):
         self.use_api = use_api
+        # Priority: explicit backend > LLM_BACKEND env > use_api flag > template
+        if backend:
+            self.backend = backend.lower()
+        elif os.environ.get("LLM_BACKEND"):
+            self.backend = os.environ.get("LLM_BACKEND").lower()
+        elif use_api:
+            self.backend = "api"
+        else:
+            self.backend = "template"
+
         os.makedirs(LOGS, exist_ok=True)
         self.dictionary = load_dictionary()
         self.rules = load_rules()
@@ -142,17 +156,27 @@ class CopilotClient:
                   f"Retrieved definitions:\n{json.dumps(retrieved['dictionary'], indent=1)}\n"
                   f"Fired rule details:\n{json.dumps(retrieved['rules'], indent=1)}\n\n"
                   "Write the reviewer note now.")
-        if self.use_api:
-            note, mode = self._call_api(prompt), "anthropic_api"
+
+        if self.backend == "ollama":
+            note = self._call_ollama(prompt)
+            mode = "ollama_local"
+            model_used = OLLAMA_MODEL
+        elif self.backend in ("api", "groq", "openai", "anthropic_api"):
+            note = self._call_api(prompt)
+            mode = "cloud_api"
+            model_used = MODEL_NAME
         else:
-            note, mode = self._template(bundle), "template_fallback"
+            note = self._template(bundle)
+            mode = "template_fallback"
+            model_used = "deterministic_template"
+
         check = grounding_check(note, {**bundle, "retrieved": retrieved})
         rec = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "model": MODEL_NAME if self.use_api else "deterministic_template",
+            "model": model_used,
             "mode": mode,
             "prompt_template": "reviewer_note_v1",
-            "system": SYSTEM if self.use_api else None,
+            "system": SYSTEM if self.backend != "template" else None,
             "prompt": prompt,
             "bundle_artifact_ids": bundle.get("artifact_ids", []),
             "retrieved_ids": retrieved["retrieved_ids"],
@@ -173,22 +197,47 @@ class CopilotClient:
                                 "output_ts": rec["timestamp"], "decision": decision,
                                 "reason": reason, "output": rec["output"]}) + "\n")
 
+    def _call_ollama(self, prompt: str) -> str:
+        """Call local Ollama service via HTTP REST API."""
+        import requests
+        url = f"{OLLAMA_HOST.rstrip('/')}/api/chat"
+        payload = {
+            "model": OLLAMA_MODEL,
+            "messages": [
+                {"role": "system", "content": SYSTEM},
+                {"role": "user", "content": prompt}
+            ],
+            "stream": False,
+            "options": {
+                "temperature": 0.0,
+                "num_predict": 400
+            }
+        }
+        try:
+            resp = requests.post(url, json=payload, timeout=45)
+            resp.raise_for_status()
+            data = resp.json()
+            return data.get("message", {}).get("content", "")
+        except Exception as e:
+            print(f"⚠️ Ollama call failed ({e}). Falling back to template mode.")
+            return self._template(json.loads(prompt.split("\n\n")[0].replace("Bundle:\n", "")))
+
     def _call_api(self, prompt: str) -> str:
         from openai import OpenAI
         import os
-        
-        key = os.environ.get("GROQ_API_KEY")
-        if not key:
-            raise RuntimeError("Set GROQ_API_KEY or run without --api")
 
-        # The fix: explicitly point the OpenAI client to Groq's API URL
+        key = os.environ.get("GROQ_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        if not key:
+            raise RuntimeError("Set GROQ_API_KEY / OPENAI_API_KEY or use --backend ollama / template")
+
+        base_url = BASE_URL if os.environ.get("GROQ_API_KEY") else None
         client = OpenAI(
-            base_url="https://api.groq.com/openai/v1",
+            base_url=base_url,
             api_key=key
         )
-        
+
         response = client.chat.completions.create(
-            model="qwen/qwen3.8-27b",
+            model=MODEL_NAME,
             messages=[
                 {"role": "system", "content": SYSTEM},
                 {"role": "user", "content": prompt}
@@ -196,7 +245,7 @@ class CopilotClient:
             temperature=0.0,
             max_tokens=400
         )
-        
+
         return response.choices[0].message.content
 
     def _template(self, b: dict) -> str:
@@ -207,5 +256,5 @@ class CopilotClient:
                 f"(interval widens accordingly). Key model drivers: {drivers}. "
                 f"Deterministic rules fired: {rules}. Anomaly score {b['anomaly_score']:.2f}; "
                 f"predicted exception type {b['exception_type_pred']}. "
-                f"[template_fallback — run with --api for LLM-generated notes] "
+                f"[template_fallback — run with --backend ollama or --api for LLM-generated notes] "
                 f"RECOMMENDATION — human decision required.")

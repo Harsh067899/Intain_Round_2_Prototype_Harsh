@@ -51,6 +51,21 @@ Calibration improves Brier on every target (e.g. default 0.0579 → 0.0474).
 - Synthetic data: relationships are realistic in shape and ordering but absolute
   levels are generator-chosen; all rates are calibration-anchored, not market claims.
 
+## Action policy: Expected Dollar Loss (EDL)
+Connects calibrated machine learning default probabilities directly to portfolio financial ROI:
+$$\text{EDL} = P(\text{default}_{12m}) \times \text{Current Balance} \times \text{LGD}$$
+- **Assumptions**: Baseline Loss Given Default ($\text{LGD} = 40\%$) for first-lien amortizing residential mortgages.
+- **Triage thresholds**:
+  - `ESCALATE`: $\text{EDL} > \$50,000$ OR $\text{anomaly\_score} > 0.70$ OR $(\text{EDL} > \$10,000 \land \text{anomaly\_score} > 0.40)$
+  - `REVIEW`: $\text{EDL} > \$10,000$ OR $\text{anomaly\_score} > 0.40$ OR $\text{trust\_score} < 0.50$
+  - `AUTO_ACCEPT`: Compliant portfolio records below risk/exposure limits.
+
+## Deployment & execution interfaces
+- **Streamlit Web UI** (`dashboard/app.py`): Multi-page interactive application featuring portfolio KPI overviews, loan risk radar charts, anomaly queues, calibration plots, scenario simulations, and copilot governance consoles.
+- **FastAPI REST Service** (`src/api/main.py`): Low-latency production microservice with pre-loaded models on startup exposing single-loan (`/api/v1/score`) and vectorized batch scoring (`/api/v1/batch-score`).
+- **Local On-Prem Copilot**: Ollama local inference (`http://localhost:11434/api/chat` with `llama3.1:8b`) with two-stream JSONL audit logging and automatic template fallback.
+
 ## Leakage controls
 Strict horizon censoring; disjoint loan groups; backward-only history features;
-permutation test; "too-good-to-be-true" review gate on every metric.
+permutation test; "too-good-to-be-true" review gate on every metric. Pandera
+schema validation guarantees ingestion data contracts.
