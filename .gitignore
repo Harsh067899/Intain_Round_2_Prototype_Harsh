@@ -1,6 +1,4 @@
 __pycache__/
 *.pyc
 .env
-data/raw/*.csv
-data/ground_truth/*.csv
 *.ipynb_checkpoints
